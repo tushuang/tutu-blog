@@ -1,0 +1,33 @@
+name: deploy to Github Pages # 工作流 name
+
+on:            # 触发条件
+  push:        # push事件
+    branches:  # 指定分支
+      master   # master分支
+
+jobs:          # 任务，一个workflow可以有多个job
+  deploy:      # 任务名为 deploy
+    runs-on: ubuntu-latest  # 运行环境
+    steps: 
+      - uses: actions/checkout@v2
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: Cache NPM dependencies  
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.OS }}-npm-cache
+          restore-keys: |
+            ${{ runner.OS }}-npm-cache
+      - name: Install Dependencies  # 安装hexo依赖
+        run: npm install
+      - name: Build   # 执行打包命令，生成静态文件
+        run: npm run build
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public  # 静态文件的资源路径
+          publish_branch: gh-pages  # 部署的分支
